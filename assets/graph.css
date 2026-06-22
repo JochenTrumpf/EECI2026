@@ -1,0 +1,16 @@
+/* 
+this does nothing because plotly renders inside an SVG and <tspan> does not support wrapping
+
+leaving this here so I remember how to do CSS injection if needed
+
+find the CSS selector (g.hovertext > text, meaning any <text> tag inside a <g> tag of class "hovertext")
+using the CSS debugger in the browser: 
+
+press F12 to start dev tools, put focus on Sources tab in dev tools, trigger hover, press F8 to pause execution,
+now move your mouse :)
+*/
+
+g.hovertext > text {
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important;
+}
