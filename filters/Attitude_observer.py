@@ -1,4 +1,5 @@
 import numpy as np
+import scipy.linalg as sp
 from util import quat_utils, pose_utils
 
 from .filter_state import phone_filter_state
@@ -85,6 +86,8 @@ class Attitude_observer(filter):
             return
         
         # observer implementation starts here
+        # access gains as self.params.k_a, self.params.k_m
+        # access true vectors as (- self.params.g), self.params.m
         Rhat = quat_utils.quat2Rot(self.s.q)    # observer state
         w = m['w']                              # gyro measurement
         acc = m['y_a']                          # normalized accelerometer measurement
@@ -95,4 +98,4 @@ class Attitude_observer(filter):
 
         # convert back to internal formats
         self.s.q = quat_utils.Rot2quat(Rhat)
-        self.s.eul = np.array([[np.atan2(Rhat[2,1], Rhat[2,2])], [- np.asin(Rhat[2,0])], [np.atan2(Rhat[1,0],Rhat[0,0])]])
+        self.s.eul = np.array([[np.atan2(Rhat[2,1], Rhat[2,2])], [- np.asin(Rhat[2,0])], [np.atan2(Rhat[1,0], Rhat[0,0])]])
