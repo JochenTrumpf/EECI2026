@@ -10,6 +10,7 @@ from robots.robot_state import robot_state, INS_robot_state
 from robots.simple_quad import simple_quad
 
 from sensors.simple_sensors import simple_IMU, simple_GPS
+from sensors.phone_IMU import phone_IMU
 
 from simulations.test_sim import test_sim
 
@@ -20,6 +21,7 @@ class simple_app(dash_app):
     """
     Supports output from:
      + test_sim
+     + phone_sim
     """
 
     def __init__(self, data_file: str, downloadable_file_buffer: str, unity_height: int = 750, unity_top_margin: int = 25, url_prefix: str = '/', supply_HTTP_server: bool = True,  
@@ -79,10 +81,12 @@ class simple_app(dash_app):
     def add_robot_tab(self, r_idx: int):
         robot = self.sim.robots[r_idx]
         tab_title = robot.name
-        sub_tabs = [
-            self._add_error_histogram_tab(r_idx, 'e_N'), 
-            self._add_error_histogram_tab(r_idx, 'e_avg')
-        ]
+
+        sub_tabs = []
+        # one sub tab per global error variable
+        for var in self.sim.get_var_attributes().keys():
+            sub_tabs.append(self._add_error_histogram_tab(r_idx, var)) 
+
         # check if robot contains pre-computed trajectory data
         if robot.precomputed:
             sub_tabs.append(self._add_precomputed_robot_traj_tab(r_idx))
@@ -422,7 +426,10 @@ class simple_app(dash_app):
             s_traj = []
 
         # convert to list[list[float]]
-        p_traj = [list(s.p.flatten()) for s in s_traj]
+        if isinstance(robot, simple_quad):
+            p_traj = [list(s.p.flatten()) for s in s_traj]
+        else:
+            p_traj = [[3., 3., 7.5] for _ in s_traj]
         q_traj = [list(s.q.flatten()) for s in s_traj]
 
         object_data.append({
@@ -432,7 +439,7 @@ class simple_app(dash_app):
             't_min': 0,
             't_max': len(s_traj) - 1,
 
-            'robot_type': 'quad' if isinstance(robot, simple_quad) else 'unknown',
+            'robot_type': 'quad' if isinstance(robot, simple_quad) else 'phone',
             'p_traj': p_traj,
             'q_traj': q_traj
         })
@@ -476,11 +483,18 @@ class simple_app(dash_app):
             cov_q_traj = []
 
         # convert to list[list[float]]
-        p_traj = [list(s.p.flatten()) for s in s_traj]
+        if isinstance(robot, simple_quad):
+            p_traj = [list(s.p.flatten()) for s in s_traj]
+        else:
+            p_traj = [[3., 15., 7.5] for _ in s_traj]
         q_traj = [list(s.q.flatten()) for s in s_traj]
 
         # convert to list[float]
-        p_e_traj = [s_e['p'] for s_e in s_e_traj]
+        if isinstance(robot, simple_quad):
+            p_e_traj = [s_e['p'] for s_e in s_e_traj]
+        else:
+            p_e_traj = [0.0 for _ in s_e_traj]
+            
         q_e_traj = [s_e['q'] for s_e in s_e_traj]
 
         # convert to list[list[float]]
@@ -531,7 +545,7 @@ class simple_app(dash_app):
             measurements = [list(m['p'].flatten()) for m in m_traj[::interval]]
             t_max = len(measurements) - 1
 
-        elif sensor.__class__ in [simple_IMU]:
+        elif sensor.__class__ in [simple_IMU, phone_IMU]:
             supported_sensor = True
             sensor_type = sensor.name + '.lf'
             interval = sensor.get_interval('y_m')

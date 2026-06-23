@@ -166,7 +166,7 @@ class GPS_INS_EKF(filter):
         # tell pylance to shut up about the fact that t_step is unused in this implementation
         del t_step 
 
-        # check that we have the required mesurements, if not, do nothing
+        # check that we have the required measurements, if not, do nothing
         if ('y_a' not in m) or ('y_m' not in m):
             return
         if (m['y_a'] is None) or (m['y_m'] is None):

@@ -191,7 +191,6 @@ class robot(ABC):
         return m, m_true, m_e
 
     def precompute_trajectory(self, initial_state: robot_state):
-        self.config.record_state = True
         self.initialize(initial_state)
         self.record()
         while not self.arrived:
@@ -227,6 +226,8 @@ class robot(ABC):
 
         # initialize state trajectory
         self.s_traj = []
+        self.T = 0
+        self.arrived = False
 
     @abstractmethod
     def _update_state(self):

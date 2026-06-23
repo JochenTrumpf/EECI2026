@@ -114,3 +114,37 @@ class INS_robot_state(robot_state):
         pos = np.array([[0.],[0.],[0.]])
         quat = np.array([[1.],[0.],[0.],[0.]])
         return cls(pos, pos, quat, pos, pos, pos, pos)
+
+class phone_state(robot_state):
+
+    var_attributes = {
+        'q': {
+            'var_type': 'nD',
+            'var_freq': 'hf',
+            'component_number': 4,
+            'component_names': ('w', 'x', 'y', 'z'),
+            'var_title': 'quaternion',
+            'tab_title': 'Quaternion'
+        },
+        'eul': {
+            'var_type': 'nD',
+            'var_freq': 'hf',
+            'component_number': 3,
+            'component_names': ('roll', 'pitch', 'yaw'),
+            'var_title': 'euler',
+            'tab_title': 'Euler angles'
+        }
+    }
+
+    def __init__(self, q: np.typing.NDArray, eul: np.typing.NDArray):
+        self.q = q
+        self.eul = eul
+
+    def copy(self):
+        return self.__class__(self.q, self.eul)
+
+    @classmethod
+    def default(cls):
+        eul = np.array([[0.],[0.],[0.]])
+        quat = np.array([[1.],[0.],[0.],[0.]])
+        return cls(quat, eul)

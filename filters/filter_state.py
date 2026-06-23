@@ -118,3 +118,43 @@ class INS_filter_state(filter_state):
         pos = np.array([[0.],[0.],[0.]])
         quat = np.array([[1.],[0.],[0.],[0.]])
         return cls(pos, pos, quat, pos, pos)
+
+class phone_filter_state(filter_state):
+
+    var_attributes = {
+        'q': {
+            'var_type': 'nD',
+            'var_freq': 'hf',
+            'component_number': 4,
+            'component_names': ('w', 'x', 'y', 'z'),
+            'var_title': 'quaternion',
+            'error_function': 'quat_error',
+            'error_title': 'error (deg)',
+            'error_long_title': 'heading error (deg)',
+            'tab_title': 'Quaternion'
+        },
+        'eul': {
+            'var_type': 'nD',
+            'var_freq': 'hf',
+            'component_number': 3,
+            'component_names': ('roll', 'pitch', 'yaw'),
+            'var_title': 'euler',
+            'error_function': 'l2_error',
+            'error_title': 'error (deg)',
+            'error_long_title': 'euler angle error (deg)',
+            'tab_title': 'Euler angles'
+        }
+    }
+
+    def __init__(self, q: np.typing.NDArray, eul: np.typing.NDArray):
+        self.q = q
+        self.eul = eul
+
+    def copy(self):
+        return self.__class__(self.q, self.eul)
+
+    @classmethod
+    def default(cls):
+        eul = np.array([[0.],[0.],[0.]])
+        quat = np.array([[1.],[0.],[0.],[0.]])
+        return cls(quat, eul)
