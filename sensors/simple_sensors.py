@@ -6,6 +6,112 @@ from .sensor import sensor
 
 from robots.robot_state import INS_robot_state
 
+class base_IMU(sensor):
+    """
+    High frequency 3-axis accelerometer and 3-axis gyroscope
+    
+    parameters:
+     - inherited from parent class (sensor)
+        + freq - default measurement frequency (in Hz)
+    
+     - additional parameters
+        + s_a - uncertainty of accelerometer measurement a_m in each component (std.dev. in m/s^2)
+        + s_w - uncertainty of gyro measurement w_m in each component (std.dev. in rad/s)
+
+    required robot_state class:
+     INS_robot_state
+
+    required runtime attributes:
+     - inherited from parent class (sensor)
+        + dt - simulation time step
+
+     - additional runtime attributes
+        + g - gravity vector
+     
+    high frequency return values (a, w):
+     a, a_true, a_e - linear acceleration measurement/ground truth/measurement error w.r.t global reference frame expressed in body-fixed frame
+     w, w_true, w_e - angular velocity measurement/ground truth/measurement error w.r.t global reference frame expressed in body-fixed frame
+    """
+
+    class parameters(sensor.parameters):
+        def __init__(self):
+            self.s_a: float
+            self.s_w: float
+
+            super().__init__()
+
+    def __init__(self, params: base_IMU.parameters):
+        # override parent class type
+        self.params: base_IMU.parameters
+
+        super().__init__(params)
+
+    @classmethod
+    def get_var_attributes(cls):
+        info = super().get_var_attributes()
+        
+        # information for additional measured variables
+        info.update({
+            'a': {
+                'var_type': 'nD',
+                'var_freq': 'hf',
+                'component_number': 3,
+                'component_names': ('x', 'y', 'z'),
+                'var_title': 'accel (m/s^2)',
+                'error_title': 'accel error (m/s^2)',
+                'tab_title': 'Accelerometer'
+            },
+            'w': {
+                'var_type': 'nD',
+                'var_freq': 'hf',
+                'component_number': 3,
+                'component_names': ('x', 'y', 'z'),
+                'var_title': 'gyro (rad/s)',
+                'error_title': 'gyro error (rad/s)',
+                'tab_title': 'Gyroscope'
+            }
+        })
+
+        return info 
+
+    def measure(self, s: INS_robot_state, t_step: int):        
+        if t_step % self.get_interval('a') == 0:
+            # simulate accelerometer and gyro measurements
+            a_true = s.a
+            a_offset = s.ab + self.params.s_a * np.random.randn(3,1)
+            a_e = np.linalg.norm(a_offset)
+            a = a_true + a_offset
+
+            w_true = s.w
+            w_offset = s.wb + self.params.s_w * np.random.randn(3,1)
+            w_e = np.linalg.norm(w_offset)
+            w = w_true + w_offset
+        else:
+            a_true = None
+            a_e = None
+            a = None
+
+            w_true = None
+            w_e = None
+            w = None 
+            
+        m = {
+            'a': a,
+            'w': w
+       }
+
+        m_true = {
+            'a': a_true,
+            'w': w_true
+        }
+
+        m_e = {
+            'a': a_e,
+            'w': w_e
+        }
+
+        return m, m_true, m_e
+
 class simple_IMU(sensor):
     """
     High frequency 3-axis accelerometer and 3-axis gyroscope

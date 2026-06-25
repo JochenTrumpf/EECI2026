@@ -22,3 +22,21 @@ class INS_filter_covariance(filter_covariance):
 
     def copy(self):
         return self.__class__(self.Pr)
+
+class INS_EqF_covariance(filter_covariance):
+
+    def __init__(self, P: np.typing.NDArray):
+        self._P = P                     # 15x15 covariance for (p, v, q, ab, wb)                     
+        self.Pr = self._P[0:9, 0:9]     # (marginalized) covariance for (p, v, q)
+
+    @property
+    def P(self):
+        return self._P
+
+    @P.setter
+    def P(self, value: np.typing.NDArray):
+        self._P = value
+        self.Pr = self._P[0:9, 0:9]     # (marginalized) covariance
+
+    def copy(self):
+        return self.__class__(self._P)

@@ -111,7 +111,7 @@ class robot(ABC):
 
     class configuration:
         def __init__(self):
-            self.record_state: bool
+            pass
     
     s: robot_state
     s_traj: list[robot_state]
